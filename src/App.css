@@ -121,20 +121,18 @@ h1 {
   background-color: var(--brown-very-light);
   border-radius: 8px;
   padding: 20px;
-  max-width: 100%;
 }
 
 .visualizer {
-  display: flex;
+  display: inline-flex; /* key fix: use inline-flex for true centering */
   align-items: flex-end;
-  flex-wrap: nowrap;
   gap: 10px;
   height: 400px;
   padding: 10px;
   position: relative;
-  overflow-x: auto;
-  width: 100%;
+  margin: 0 auto;
 }
+
 
 .bar-container {
   display: flex;
@@ -299,3 +297,6 @@ h1 {
   background-color: #aaa;
 }
 
+.dark-mode .bar.comparing {
+  background-color: #7986cb;
+}

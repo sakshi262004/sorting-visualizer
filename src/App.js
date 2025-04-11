@@ -188,8 +188,8 @@ function App() {
   const [currentAction, setCurrentAction] = useState({});
   const [descriptions, setDescriptions] = useState([]);
   const [isAutoplaying, setIsAutoplaying] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
-  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -309,9 +309,10 @@ function App() {
         )}
         <button onClick={handleReset}>Reset</button>
         <button onClick={shuffleArray}>Shuffle</button>
-        <button onClick={() => setDarkMode(prev => !prev)}>
-          {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
-        </button>
+        <button onClick={toggleDarkMode}>
+  {isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+</button>
+
       </div>
 
       <div className="status">
