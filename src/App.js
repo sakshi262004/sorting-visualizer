@@ -192,12 +192,13 @@ function App() {
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    if (darkMode) {
+    if (isDarkMode) {
       document.body.classList.add('dark-mode');
     } else {
       document.body.classList.remove('dark-mode');
     }
-  }, [darkMode]);
+  }, [isDarkMode]);
+  
 
   useEffect(() => {
     if (isSorted) {
@@ -284,9 +285,12 @@ function App() {
     setCurrentAction({});
     setDescriptions([]);
   };
-
+  const toggleDarkMode = () => {
+    setIsDarkMode(prev => !prev);
+  };
   return (
-    <div className="app">
+    <div className={`app ${isDarkMode ? 'dark-mode' : ''}`}>
+
       <h1>Sorting Visualizer</h1>
       <div className="controls">
         <select onChange={(e) => setAlgorithm(e.target.value)} value={algorithm}>
@@ -319,6 +323,7 @@ function App() {
 
       <div className="visualizer-container">
         <div className="visualizer">
+          
           {array.map((val, idx) => {
             const isComparing = currentAction.comparing?.includes(idx);
             const isSwapping = currentAction.swapping?.includes(idx);
