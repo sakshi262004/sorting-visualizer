@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import { motion } from "framer-motion";
-const arraySize = 10; // or any size you want
+
+const arraySize = 10;
 
 // ===== SORTING ALGORITHMS =====
+// [Your sorting algorithm functions here — unchanged]
 const getBubbleSortSteps = (arr) => {
   const steps = [];
   const descriptions = [];
@@ -88,29 +90,22 @@ const getMergeSortSteps = (arr) => {
     while (left <= midIdx) temp.push(fullArray[left++]);
     while (right <= endIdx) temp.push(fullArray[right++]);
 
-    // Now update the array and push a SINGLE step for each change
-   // First update the array without pushing visuals
-for (let i = 0; i < temp.length; i++) {
-  fullArray[startIdx + i] = temp[i];
-}
+    for (let i = 0; i < temp.length; i++) {
+      fullArray[startIdx + i] = temp[i];
+    }
 
-// Now push a single visual update with the whole merge result
-descriptions.push(
-  `Placing merged values from index ${startIdx} to ${endIdx}`
-);
-steps.push({
-  array: [...fullArray],
-  workingRange: [startIdx, endIdx],
-  merging: Array.from({ length: endIdx - startIdx + 1 }, (_, i) => startIdx + i),
-  description: descriptions[descriptions.length - 1],
-});
-
+    descriptions.push(`Placing merged values from index ${startIdx} to ${endIdx}`);
+    steps.push({
+      array: [...fullArray],
+      workingRange: [startIdx, endIdx],
+      merging: Array.from({ length: endIdx - startIdx + 1 }, (_, i) => startIdx + i),
+      description: descriptions[descriptions.length - 1],
+    });
   }
 
   mergeSort();
   return { steps, descriptions };
 };
-
 
 const getQuickSortSteps = (arr) => {
   const steps = [];
@@ -184,7 +179,6 @@ function App() {
     Array.from({ length: size }, () => Math.floor(Math.random() * 90) + 10);
   
   const [array, setArray] = useState(generateRandomArray(arraySize));
-  
   const [steps, setSteps] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
   const [isSorting, setIsSorting] = useState(false);
@@ -194,9 +188,16 @@ function App() {
   const [currentAction, setCurrentAction] = useState({});
   const [descriptions, setDescriptions] = useState([]);
   const [isAutoplaying, setIsAutoplaying] = useState(false);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-const [isPlaying, setIsPlaying] = useState(false);
 
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  }, [darkMode]);
 
   useEffect(() => {
     if (isSorted) {
@@ -263,14 +264,15 @@ const [isPlaying, setIsPlaying] = useState(false);
     setSortingMessage('✅ Autoplay Complete!');
     setCurrentAction({});
   };
+
   const shuffleArray = () => {
     const newArray = Array.from({ length: arraySize }, () => Math.floor(Math.random() * 100) + 5);
     setArray(newArray);
     setSteps([]);
-    setCurrentStepIndex(0);
-    setIsPlaying(false);
+    setCurrentStep(0);
+    setIsSorting(false);
+    setIsSorted(false);
   };
-  
 
   const handleReset = () => {
     setArray(generateRandomArray(arraySize));
@@ -282,92 +284,78 @@ const [isPlaying, setIsPlaying] = useState(false);
     setCurrentAction({});
     setDescriptions([]);
   };
-  
 
   return (
     <div className="app">
       <h1>Sorting Visualizer</h1>
       <div className="controls">
-        <select
-          onChange={(e) => setAlgorithm(e.target.value)}
-          value={algorithm}
-          className="algorithm-select"
-        >
+        <select onChange={(e) => setAlgorithm(e.target.value)} value={algorithm}>
           <option>Bubble Sort</option>
           <option>Merge Sort</option>
           <option>Quick Sort</option>
         </select>
-        <button onClick={handleStart} className="control-btn start-btn">Start</button>
+        <button onClick={handleStart}>Start</button>
         {isSorting && !isSorted && (
           <>
-            <button onClick={handleNext} className="control-btn next-btn">Next Step</button>
-            <button
-              onClick={handleAutoplay}
-              className="control-btn autoplay-btn"
-              disabled={isAutoplaying}
-            >
+            <button onClick={handleNext}>Next Step</button>
+            <button onClick={handleAutoplay} disabled={isAutoplaying}>
               Autoplay
             </button>
           </>
         )}
-        <button onClick={handleReset} className="control-btn reset-btn">Reset</button>
-        <button
-  onClick={shuffleArray}
-  className="shuffle-btn"
->
-  Shuffle
-</button>
-
-
+        <button onClick={handleReset}>Reset</button>
+        <button onClick={shuffleArray}>Shuffle</button>
+        <button onClick={() => setDarkMode(prev => !prev)}>
+          {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+        </button>
       </div>
 
       <div className="status">
-        <p className="sorting-message">{sortingMessage}</p>
+        <p>{sortingMessage}</p>
         {steps[currentStep - 1]?.description && (
-          <p className="step-description">➡️ {steps[currentStep - 1].description}</p>
+          <p>➡️ {steps[currentStep - 1].description}</p>
         )}
       </div>
 
       <div className="visualizer-container">
         <div className="visualizer">
-        {array.map((val, idx) => {
-  const isComparing = currentAction.comparing?.includes(idx);
-  const isSwapping = currentAction.swapping?.includes(idx);
-  const isPivot = currentAction.pivot === idx;
-  const isInWorkingRange = currentAction.workingRange &&
-    idx >= currentAction.workingRange[0] &&
-    idx <= currentAction.workingRange[1];
-  const isSplit = currentAction.splitAt === idx;
-  const isMerging = currentAction.merging?.includes(idx);
+          {array.map((val, idx) => {
+            const isComparing = currentAction.comparing?.includes(idx);
+            const isSwapping = currentAction.swapping?.includes(idx);
+            const isPivot = currentAction.pivot === idx;
+            const isInWorkingRange = currentAction.workingRange &&
+              idx >= currentAction.workingRange[0] &&
+              idx <= currentAction.workingRange[1];
+            const isSplit = currentAction.splitAt === idx;
+            const isMerging = currentAction.merging?.includes(idx);
 
-  return (
-    <React.Fragment key={idx}>
-      {isSplit && <div className="split-line"></div>}
-      <div className="bar-container">
-        <motion.div
-          layout
-          className={`bar 
-            ${isComparing ? 'comparing' : ''} 
-            ${isSwapping ? 'swapping' : ''}
-            ${isPivot ? 'pivot' : ''}
-            ${isInWorkingRange ? 'working' : ''}
-            ${isMerging ? 'merging' : ''}`}
-          style={{
-            height: `${val * 4}px`,
-          }}
-          transition={{ duration: 0.4 }}
-        >
-          {val}
-        </motion.div>
-        {isComparing && (
-          <div className={`arrow ${currentAction.comparing[0] === idx ? 'left' : 'right'}`} />
-        )}
-        {isPivot && <div className="pivot-marker">Pivot</div>}
-      </div>
-    </React.Fragment>
-  );
-})}
-
+            return (
+              <React.Fragment key={idx}>
+                {isSplit && <div className="split-line"></div>}
+                <div className="bar-container">
+                  <motion.div
+                    layout
+                    className={`bar 
+                      ${isComparing ? 'comparing' : ''} 
+                      ${isSwapping ? 'swapping' : ''}
+                      ${isPivot ? 'pivot' : ''}
+                      ${isInWorkingRange ? 'working' : ''}
+                      ${isMerging ? 'merging' : ''}`}
+                    style={{
+                      height: `${val * 4}px`,
+                    }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    {val}
+                  </motion.div>
+                  {isComparing && (
+                    <div className={`arrow ${currentAction.comparing[0] === idx ? 'left' : 'right'}`} />
+                  )}
+                  {isPivot && <div className="pivot-marker">Pivot</div>}
+                </div>
+              </React.Fragment>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -375,36 +363,3 @@ const [isPlaying, setIsPlaying] = useState(false);
 }
 
 export default App;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
