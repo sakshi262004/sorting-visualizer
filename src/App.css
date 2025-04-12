@@ -294,9 +294,65 @@ h1 {
 
 /* Dark mode bar override */
 .dark-mode .bar {
-  background-color: #aaa;
+  color: #121212 !important;
 }
+
 
 .dark-mode .bar.comparing {
   background-color: #7986cb;
+}
+.hidden-value {
+  visibility: hidden;
+}
+
+.key-value {
+  color: #facc15; /* amber, looks good in both light/dark */
+  font-weight: bold;
+}
+
+.bar.shifting-from {
+  background-color: #FF9800;
+  opacity: 0.7;
+}
+
+.bar.shifting-to {
+  background-color: #FFC107;
+  border: 2px dashed #FF9800;
+}
+
+.bar.inserting {
+  background-color: #4CAF50;
+  animation: pulse 0.5s;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.speed-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 10px;
+}
+
+.speed-control input[type="range"] {
+  width: 80px;
+  transition: all 0.3s;
+}
+
+.speed-control input[type="range"]:hover {
+  transform: scale(1.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .speed-control {
+    margin: 5px 0;
+    width: 100%;
+  }
+  .speed-control input[type="range"] {
+    width: 100%;
+  }
 }

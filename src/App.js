@@ -173,6 +173,96 @@ const getQuickSortSteps = (arr) => {
   quickSort();
   return { steps, descriptions };
 };
+const getInsertionSortSteps = (arr) => {
+  const steps = [];
+  const descriptions = [];
+  const array = [...arr];
+
+  // Initial state
+  steps.push({
+    array: [...array],
+    description: "Starting insertion sort"
+  });
+
+  for (let i = 1; i < array.length; i++) {
+    const key = array[i];
+    let j = i - 1;
+
+    // Highlight the key being inserted
+    descriptions.push(`🔑 Key selected: ${key} at position ${i}`);
+    steps.push({
+      array: [...array],
+      keyIndex: i,
+      keyValue: key,
+      description: descriptions[descriptions.length - 1]
+    });
+
+    while (j >= 0 && array[j] > key) {
+      // Show comparison
+      descriptions.push(`🔎 Comparing ${array[j]} (position ${j}) with key ${key}`);
+      steps.push({
+        array: [...array],
+        comparing: [j, i],
+        keyIndex: i,
+        keyValue: key,
+        description: descriptions[descriptions.length - 1]
+      });
+
+      // Show the shift about to happen (without modifying array yet)
+      descriptions.push(`➡️ Shifting ${array[j]} right to position ${j + 1}`);
+      steps.push({
+        array: [...array],
+        shiftingFrom: j,
+        shiftingTo: j + 1,
+        keyIndex: i,
+        keyValue: key,
+        description: descriptions[descriptions.length - 1],
+        showTemp: true, // Special flag for visualization
+        tempValue: array[j] // Value being moved
+      });
+
+      // Actually perform the shift
+      array[j + 1] = array[j];
+      j--;
+
+      // Show array after shift
+      descriptions.push(`✅ Shifted value to position ${j + 2}`);
+      steps.push({
+        array: [...array],
+        shifted: true,
+        keyIndex: i,
+        keyValue: key,
+        description: descriptions[descriptions.length - 1]
+      });
+    }
+
+    // Show final insertion
+    const insertPos = j + 1;
+    if (insertPos !== i) {
+      array[insertPos] = key;
+      descriptions.push(`✨ Inserting key ${key} at position ${insertPos}`);
+      steps.push({
+        array: [...array],
+        inserting: insertPos,
+        keyValue: key,
+        description: descriptions[descriptions.length - 1]
+      });
+    }
+  }
+
+  // Final sorted state
+  steps.push({
+    array: [...array],
+    description: "🎉 Insertion sort complete"
+  });
+
+  return { steps, descriptions };
+};
+
+
+
+
+
 
 function App() {
   const generateRandomArray = (size) =>
@@ -189,6 +279,12 @@ function App() {
   const [descriptions, setDescriptions] = useState([]);
   const [isAutoplaying, setIsAutoplaying] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [speedPercent, setSpeedPercent] = useState(50); // Speed: 1 to 100%
+  const [speed, setSpeed] = useState(100); // initial value of speed
+
+
+
+
 
 
   useEffect(() => {
@@ -211,6 +307,8 @@ function App() {
     if (algorithm === 'Bubble Sort') result = getBubbleSortSteps([...array]);
     else if (algorithm === 'Merge Sort') result = getMergeSortSteps([...array]);
     else if (algorithm === 'Quick Sort') result = getQuickSortSteps([...array]);
+    else if (algorithm === 'Insertion Sort') result = getInsertionSortSteps([...array]);
+     
 
     setSteps(result.steps);
     setDescriptions(result.descriptions);
@@ -256,7 +354,8 @@ function App() {
         merging: steps[i].merging,
       });
       setCurrentStep(i + 1);
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, getDelayFromSpeed(speedPercent)));
+
     }
 
     setIsAutoplaying(false);
@@ -288,6 +387,13 @@ function App() {
   const toggleDarkMode = () => {
     setIsDarkMode(prev => !prev);
   };
+  const getDelayFromSpeed = (percent) => {
+    const minDelay = 50;    // Fastest
+    const maxDelay = 2000;  // Slowest
+    const normalized = 100 - percent; // So 100% is fastest
+    return ((normalized / 100) * (maxDelay - minDelay)) + minDelay;
+  };
+
   return (
     <div className={`app ${isDarkMode ? 'dark-mode' : ''}`}>
 
@@ -297,6 +403,7 @@ function App() {
           <option>Bubble Sort</option>
           <option>Merge Sort</option>
           <option>Quick Sort</option>
+          <option>Insertion Sort</option>
         </select>
         <button onClick={handleStart}>Start</button>
         {isSorting && !isSorted && (
@@ -313,7 +420,19 @@ function App() {
   {isDarkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
 </button>
 
+
       </div>
+      <div className="speed-slider">
+  <label htmlFor="speedRange">Speed: {speedPercent}%</label>
+  <input
+    id="speedRange"
+    type="range"
+    min="1"
+    max="100"
+    value={speedPercent}
+    onChange={(e) => setSpeedPercent(Number(e.target.value))}
+  />
+</div>
 
       <div className="status">
         <p>{sortingMessage}</p>
@@ -325,43 +444,37 @@ function App() {
       <div className="visualizer-container">
         <div className="visualizer">
           
-          {array.map((val, idx) => {
-            const isComparing = currentAction.comparing?.includes(idx);
-            const isSwapping = currentAction.swapping?.includes(idx);
-            const isPivot = currentAction.pivot === idx;
-            const isInWorkingRange = currentAction.workingRange &&
-              idx >= currentAction.workingRange[0] &&
-              idx <= currentAction.workingRange[1];
-            const isSplit = currentAction.splitAt === idx;
-            const isMerging = currentAction.merging?.includes(idx);
+        {array.map((val, idx) => {
+  const isComparing = currentAction.comparing?.includes(idx);
+  const isShiftingFrom = currentAction.shiftingFrom === idx;
+  const isShiftingTo = currentAction.shiftingTo === idx;
+  const isInserting = currentAction.inserting === idx;
+  const isKey = currentAction.keyIndex === idx;
+  const showTemp = currentAction.showTemp && isShiftingTo;
 
-            return (
-              <React.Fragment key={idx}>
-                {isSplit && <div className="split-line"></div>}
-                <div className="bar-container">
-                  <motion.div
-                    layout
-                    className={`bar 
-                      ${isComparing ? 'comparing' : ''} 
-                      ${isSwapping ? 'swapping' : ''}
-                      ${isPivot ? 'pivot' : ''}
-                      ${isInWorkingRange ? 'working' : ''}
-                      ${isMerging ? 'merging' : ''}`}
-                    style={{
-                      height: `${val * 4}px`,
-                    }}
-                    transition={{ duration: 0.4 }}
-                  >
-                    {val}
-                  </motion.div>
-                  {isComparing && (
-                    <div className={`arrow ${currentAction.comparing[0] === idx ? 'left' : 'right'}`} />
-                  )}
-                  {isPivot && <div className="pivot-marker">Pivot</div>}
-                </div>
-              </React.Fragment>
-            );
-          })}
+  return (
+    <div key={idx} className="bar-container">
+      <div
+        className={`bar 
+          ${isComparing ? 'comparing' : ''}
+          ${isShiftingFrom ? 'shifting-from' : ''}
+          ${isShiftingTo ? 'shifting-to' : ''}
+          ${isInserting ? 'inserting' : ''}
+          ${isKey ? 'key-bar' : ''}`}
+        style={{
+          height: `${showTemp ? currentAction.tempValue * 4 : val * 4}px`
+        }}
+      >
+        {showTemp ? currentAction.tempValue : val}
+      </div>
+      {isComparing && (
+        <div className={`arrow ${currentAction.comparing[0] === idx ? 'left' : 'right'}`} />
+      )}
+    </div>
+  );
+})}
+
+          
         </div>
       </div>
     </div>
